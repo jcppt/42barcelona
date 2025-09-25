@@ -1,0 +1,100 @@
+﻿Evaluation knowledge
+What is a virtual machine?
+A virtual machine (VM) is software that simulates a complete computer system and can run programs as if it were a real physical computer. It allows the creation of multiple isolated, simulated environments or dedicated resources from a single physical hardware system. VMs enable running different operating systems simultaneously on the same physical machine.
+
+Why did you choose Debian?
+Debian is recommended for this project for several reasons:
+
+    • Beginner-friendly: The subject specifically mentions that Debian is easier for newcomers to system administration
+      
+    • Extensive documentation: There are many tutorials and resources available for Debian
+      
+    • Stability: Debian is known for its stability and reliability
+      
+    • Community support: Large community with helpful documentation and forums
+      
+    • Package management: APT package manager is intuitive and well-documented
+
+What is the purpose of virtual machines?
+Virtual machines serve several important purposes:
+
+    • Isolation: Provide secure, isolated environments for testing and development
+      
+    • Resource efficiency: Allow multiple OS instances on a single physical machine
+      
+    • Platform independence: Enable running different operating systems on the same hardware
+      
+    • Disaster recovery: Easy backup and restoration of entire system states
+      
+    • Development and testing: Safe environments for experimenting without affecting the host system
+      
+    • Legacy support: Run older operating systems and applications
+      
+Differences between apt and aptitude
+Both are package management tools for Debian-based systems, but they have key differences:
+
+APT (Advanced Package Tool):
+
+    • Lower-level package manager
+      
+    • Command-line interface only
+      
+    • Faster and more lightweight
+      
+    • Used by default in most scripts and automation
+
+Aptitude:
+
+    • Higher-level package manager built on top of APT
+      
+    • Offers both command-line and text-based user interface
+      
+    • Better dependency resolution
+      
+    • More interactive features and detailed package information
+      
+    • Smarter handling of orphaned packages
+      
+    • More user-friendly for interactive use
+      
+What is AppArmor?
+AppArmor (Application Armor) is a Linux security module that provides Mandatory Access Control (MAC) security. Key features:
+
+    • Application confinement: Restricts programs' capabilities and access to system resources
+      
+    • Profile-based: Uses security profiles to define what resources applications can access
+      
+    • Path-based: Controls access based on file paths
+      
+    • Default deny: Applications can only access explicitly allowed resources
+      
+    • Complements traditional permissions: Works alongside standard Linux file permissions
+
+What is LVM?
+LVM (Logical Volume Manager) is a device mapper framework that provides logical volume management for the Linux kernel. Key benefits:
+
+Flexibility:
+
+    • Dynamic resizing of partitions without unmounting
+      
+    • Easy management of storage across multiple physical devices
+      
+    • Snapshot creation for backups
+
+Structure:
+
+    • Physical Volumes (PV): Physical hard drives or partitions
+      
+    • Volume Groups (VG): Collections of physical volumes
+      
+    • Logical Volumes (LV): Virtual partitions that can span multiple physical volumes
+      
+    • Advantages over traditional partitioning:
+      
+    • Resize partitions on-the-fly
+      
+    • Move data between storage devices
+      
+    • Create snapshots for consistent backups
+      
+    • Stripe data across multiple devices for performance

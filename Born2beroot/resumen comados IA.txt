@@ -1,0 +1,101 @@
+﻿Check no graphical interface
+				systemctl get-default 		
+							si multi-user.target, es solo consola
+							si graphical.target, entorno gráfico.
+
+Check UFW
+				sudo ufw status			active
+				sudo service ufw status  	active
+
+Check SSH
+				sudo service ssh status	active
+
+Check OS
+				Uname -a
+
+Check sudo user group
+Check sudo user 	getent group sudo jceraval42
+
+ckeck group 		getent group jceraval42	
+
+Add user			sudo adduser name_user Pedira password de mas de 10 									caracteres Abuelo2025
+
+Add Group			sudo addgroup name_group
+
+Add user to group	sudo adduser name_user name_group
+
+Check Hostname		hostname
+
+Change Hostname	sudo nano /etc/hostname	|
+									|los 2 deben ser iguales
+Change hosts		sudo nano /etc/hosts	|
+
+reiniciar maquina	sudo reboot
+
+Comprobar particiones lsblk
+uname -a
+Check SUDO		which sudo
+
+sudo add user 		sudo adduser name_user sudo
+
+Check is added		getent group sudo
+
+check sudo rules	nano /etc/sudoers.d/sudo_config
+
+sudo logs			sudo -i o sudo su
+					cd varlog/sudo
+						ls
+							cat sudo.log
+
+
+
+
+check UFW advanced	dpkg -s ufw
+
+active?			sudo service ufw status
+
+active rules		sudo ufw status numbered
+
+rule creation		sudo ufw allow 8080
+
+check new rules	sudo ufw status numbered
+
+delete rule		sudo ufw delete # ←rule number
+
+check is deleted	sudo ufw status numbered
+
+check ssh running	sudo service ssh status
+
+Check usage		ssh root@localhost -p 4241 
+
+				ssh jceraval@localhost -p 4243 Born2beroot
+
+check crontab		sudo crontab -u root -e
+
+ruta a monitoring.sh
+				sudo nano /usr/local/bin/monitoring.sh
+
+
+
+conexion a maquina virtual,ir a firefox con la maquina en marcha y
+ 
+			localhost:8080
+
+			localhost:19999
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

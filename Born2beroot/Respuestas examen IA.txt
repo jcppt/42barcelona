@@ -1,0 +1,290 @@
+﻿# Examen de Configuración y Defensa de una Máquina Virtual  
+
+**a) ¿Cómo funciona una máquina virtual y cuál es el propósito de las máquinas virtuales?** 
+
+**a) Una máquina virtual (VM) es una emulación de un sistema informático que corre sobre el hardware físico, pero que utiliza recursos virtualizados proporcionados por un hipervisor, como VirtualBox o VMware. Esto permite ejecutar varios sistemas operativos en un solo host físico, aislando cada entorno, facilitando pruebas, desarrollo, seguridad y escalabilidad. El propósito principal de las máquinas virtuales es proporcionar entornos independientes, fácilmente replicables, que permiten realizar pruebas, aislar aplicaciones y aprovechar mejor los recursos físicos.**
+
+**b) ¿Qué sistema operativo has elegido y por qué?**  
+
+**b) He elegido el sistema operativo Debian porque es una distribución muy estable, ampliamente utilizada en servidores, con extensa documentación y una gran comunidad. Además, su gestión de paquetes es robusta y segura.**
+
+**c) Explica las diferencias básicas entre CentOS y Debian.** 
+
+**c) CentOS y Debian difieren principalmente en su filosofía y gestión de paquetes. CentOS es una distribución basada en Red Hat Enterprise Linux, utiliza el sistema de paquetes RPM y el gestor de paquetes DNF/YUM. Debian usa paquetes .deb y el gestor de paquetes apt. CentOS suele utilizarse en entornos empresariales, mientras que Debian es popular en servidores y escritorios por su estabilidad y facilidad de uso.**
+
+**d) Si elegiste CentOS, ¿qué son SELinux y DNF?** 
+
+**d) SELinux (Security-Enhanced Linux) es un módulo de seguridad que provee un sistema de control de acceso obligatorio, restringiendo lo que los procesos pueden hacer, incluso si obtienen privilegios de root. DNF es el gestor de paquetes de CentOS (a partir de la versión 8), sucesor de YUM, que permite instalar, actualizar y eliminar software.**
+
+**e) Si elegiste Debian, ¿cuál es la diferencia entre aptitude y apt, y qué es APPArmor?**
+
+**e) aptitude y apt son gestores de paquetes en Debian. apt es más reciente y está enfocado en la simplicidad y velocidad, mientras que aptitude tiene una interfaz más avanzada y capacidades de resolución de dependencias más sofisticadas. APPArmor es un módulo de seguridad que restringe las capacidades de los programas mediante perfiles, protegiendo el sistema de comportamientos no autorizados.**
+
+
+## 2. Configuración inicial sencilla
+
+**a) ¿Cómo garantizaste que la máquina no tiene entorno gráfico al arrancar?** 
+
+**a) Durante la instalación del sistema operativo, no seleccioné ningún entorno gráfico. Además, verifiqué que el nivel de ejecución o target por defecto es multi-user.target en systemd (equivalente a runlevel 3 en SysV), asegurando que no se inicia ningún servidor gráfico.**
+
+**b) ¿Cómo configuraste la autenticación para que se solicite contraseña y no se permita login como root?**  
+**b) Para la autenticación, configuré el archivo `/etc/ssh/sshd_config` deshabilitando el login de root con la directiva `PermitRootLogin no` y asegurando que el parámetro `PasswordAuthentication yes` está habilitado para otros usuarios. Además, establecí una política de contraseñas robusta usando `pam_pwquality` o `libpam-cracklib` en `/etc/pam.d/common-password`.**
+
+**c) ¿Cómo comprobaste que UFW y SSH están activos?**  
+
+**c) Para comprobar UFW, ejecuté `sudo ufw status` y verifiqué que esté en estado "active". Para SSH, usé `sudo systemctl status ssh` y comprobé que el servicio esté "active (running)".**
+
+**d) ¿Cómo verificaste el sistema operativo instalado?**
+
+**d) Verifiqué el sistema operativo usando el comando `lsb_release -a` o revisando el archivo `/etc/os-release`, donde se indica claramente si es Debian o CentOS.**
+
+## 3. USUARIO
+
+**a) ¿Cómo creaste el usuario con tu login y lo añadiste a los grupos requeridos?** 
+
+**a) Usé el comando `sudo adduser miusuario` para crear el usuario, luego
+ `sudo usermod -aG sudo,user42 miusuario` para añadirlo a los grupos sudo y user42.**
+
+**b) ¿Cómo configuraste la política de contraseñas?**  
+
+**b) Modifiqué las reglas de contraseñas en `/etc/pam.d/common-password` añadiendo requisitos como longitud mínima, uso de mayúsculas, minúsculas, números y símbolos, usando `pam_pwquality.so` o `pam_cracklib.so`. Esto obliga a que las contraseñas sean fuertes y difíciles de adivinar.**
+
+**c) ¿Cómo creaste el grupo "evaluating" y añadiste al usuario?**  
+
+**c) Creé el grupo con `sudo groupadd evaluating` y añadí el usuario con `sudo usermod -aG evaluating miusuario`.**
+
+**d) Explica ventajas y desventajas de la política de contraseñas implementada.**
+
+**d) Ventajas: la política de contraseñas robusta previene ataques de fuerza bruta y reduce el riesgo de accesos no autorizados. Desventajas: puede ser incómoda para los usuarios, que tienden a olvidar contraseñas complejas o a anotarlas, lo que introduce otros riesgos.**
+
+
+## 4. Hostname y particiones
+
+**a) ¿Cómo configuraste el hostname y verificaste su cambio tras el reinicio?**  
+
+**a) Edité `/etc/hostname` y `/etc/hosts` 
+para poner el hostname en el formato `login42`. 
+Tras guardar los cambios, ejecuté `sudo reboot` y, tras reiniciar,
+ usé el comando `hostname` para confirmar el cambio.**
+
+**b) ¿Cómo restauraste el hostname original?**
+
+**b) Restauré el hostname repitiendo el proceso anterior pero con el valor original.**
+
+**c) ¿Cómo mostraste las particiones de la máquina virtual?** 
+
+**c) Mostré las particiones usando `lsblk`, `fdisk -l` y `df -h`, comprobando que coinciden con el ejemplo del enunciado.**
+
+**d) Explica cómo funciona LVM y para qué sirve.**
+
+**d) LVM (Logical Volume Manager) permite gestionar discos y particiones de forma flexible, creando volúmenes lógicos que pueden redimensionarse fácilmente, independientemente del tamaño físico de los discos. Es muy útil para servidores, ya que permite agregar o reducir espacio sin reiniciar el sistema ni perder datos.**
+
+## 5. SUDO
+
+**a) ¿Cómo verificaste la instalación de sudo?**  
+
+**a) Comprobé la instalación con `which sudo` y `sudo -V`.**
+
+**b) ¿Cómo asignaste el usuario al grupo sudo?**  
+
+**b) `sudo usermod -aG sudo miusuario` añade el usuario al grupo sudo.** 
+
+**c) Explica el valor y el funcionamiento de sudo, con ejemplos.**  
+
+**c) sudo permite ejecutar comandos con privilegios de root de forma controlada. Por ejemplo, `sudo apt update` actualiza los paquetes. Su valor reside en que permite delegar tareas administrativas sin compartir la contraseña de root, y cada acción queda registrada.**
+
+**d) ¿Cómo implementaste las reglas de sudo del enunciado?** 
+
+**d) Edite `/etc/sudoers` con `visudo` para aplicar restricciones adicionales, como requerir contraseña o especificar comandos permitidos.**
+
+**e) ¿Cómo comprobaste el log de sudo?**
+
+**e) Verifiqué que existe `/var/log/sudo/` (o `/var/log/auth.log` en Debian) y comprobé que los comandos ejecutados con sudo quedan registrados allí. Ejecuté un comando de prueba y comprobé que el log se actualizó.**
+
+---
+
+## 6. UFW
+
+**a) ¿Cómo instalaste y verificaste UFW?**
+
+**a) Instalé UFW con `sudo apt install ufw` y verifiqué su estado con `sudo ufw status`.**
+
+**b) ¿Qué es UFW y para qué sirve?**  
+**b) UFW (Uncomplicated Firewall) es una herramienta sencilla para gestionar reglas de firewall en Linux, facilitando la gestión de iptables. Sirve para permitir o denegar tráfico en puertos y servicios específicos, mejorando la seguridad.**
+
+**c) ¿Cómo configuraste una regla para el puerto 4242 y luego una para el puerto 8080?**  
+
+**c) Añadí la regla con `sudo ufw allow 4242` y comprobé con `sudo ufw status`. Para el puerto 8080, `sudo ufw allow 8080` y comprobé igual.**
+
+**d) ¿Cómo eliminaste la regla del puerto 8080?**
+
+**d) Eliminé la regla con `sudo ufw delete allow 8080`.**
+
+---
+
+## 7. SSH
+
+**a) ¿Cómo instalaste y verificaste SSH?**
+
+**a) Instalé SSH con `sudo apt install openssh-server` y verifiqué con `sudo systemctl status ssh`.**
+
+**b) ¿Qué es SSH y para qué sirve?** 
+
+**b) SSH (Secure Shell) es un protocolo para acceso remoto seguro a otros sistemas, cifrando la comunicación y permitiendo administración remota segura.**
+
+**c) ¿Cómo restringiste SSH solo al puerto 4242?**  
+
+**c) Edité `/etc/ssh/sshd_config`, cambiando `Port 22` por `Port 4242`, reinicié el servicio y verifiqué que solo acepta conexiones en ese puerto.**
+
+**d) ¿Cómo probaste el acceso con el usuario creado y no con root?**
+
+**d) Intenté acceso con `ssh miusuario@ip -p 4242` y comprobé que con root el acceso es denegado (`PermitRootLogin no`).**
+
+---
+
+## 8. Script Monitoring
+
+### Respuestas:
+**a) Explica cómo funciona tu script, mostrando el código.**  
+
+**a) Mi script está escrito en bash y, por ejemplo, muestra información del sistema y guarda logs con fecha y hora. [Aquí mostraría el código y explicaría cada parte.]**
+
+**b) ¿Qué es cron y cómo configuraste tu script para que se ejecute cada 10 minutos y luego cada minuto?**
+
+**b) cron es un programador de tareas en Unix/Linux. Edité el crontab con `crontab -e` y añadí la línea `*/10 * * * * /ruta/script.sh` para cada 10 minutos, y luego la modifiqué a `* * * * * /ruta/script.sh` para cada minuto.**
+
+**c) ¿Cómo comprobaste el funcionamiento dinámico del script?** 
+
+**c) Probé el script alterando variables de entrada y verificando que responde correctamente en cada ejecución. Revisé los logs generados para verificar que los valores cambian dinámicamente.**
+
+
+**d) ¿Cómo lograste que el script deje de ejecutarse tras el arranque sin modificar el script?*
+
+**d) Para que el script deje de ejecutarse tras el arranque, utilicé un flag temporal en el sistema que, una vez detectado por el script tras el primer arranque, provoca que deje de ejecutarse, pero sin modificar el script. Tras reiniciar, comprobé que el flag persiste y el script se comporta como se espera.**
+
+**e) ¿Cómo te aseguraste de que el script no cambia de lugar ni permisos tras reinicio?**
+
+**e) Comprobé la existencia y permisos del script con `ls -l /ruta/script.sh` antes y después del reinicio, asegurando que no se altera.**
+
+## 9 BONUS
+
+**a) ¿Cómo montaste particiones adicionales y qué ventajas aporta?**  
+
+**a) Usé herramientas como `fdisk` o `parted` para crear nuevas particiones, las formateé con `mkfs.ext4` y las monté en directorios específicos usando `/etc/fstab`. Esto permite gestionar mejor el almacenamiento y separar datos críticos del sistema principal.**
+
+**b) ¿Cómo instalaste WordPress solo con los servicios requeridos?** 
+
+**b) Instalé WordPress descargando el paquete, configurando solo los servicios requeridos (por ejemplo, MySQL/MariaDB y PHP), evitando la instalación de servidores web no permitidos como NGINX o Apache2, y usando alternativas compatibles. Configuré la base de datos y ajusté los permisos necesarios.**
+
+**c) ¿Qué servicio extra implementaste y por qué lo consideras útil? ¿Cómo funciona?**
+
+**c) Como servicio extra,  Netdata
+
+## ¿Qué es Netdata?
+
+Netdata es una herramienta de monitorización en tiempo real para sistemas operativos como Linux, que permite supervisar el rendimiento y el estado de la máquina y sus servicios. Ofrece una interfaz web muy visual y detallada donde se pueden observar métricas de CPU, RAM, discos, red, procesos, servicios, y mucho más, en tiempo real y con muy baja latencia.
+
+---
+
+## ¿Qué hace Netdata?
+
+- Recoge y muestra en tiempo real estadísticas y métricas del sistema (CPU, memoria, discos, red, procesos, servicios, etc.).
+- Permite visualizar históricos recientes (por defecto, mantiene entre 1-2 horas de métricas).
+- Ofrece alertas visuales y notificaciones configurables cuando algún parámetro supera umbrales definidos.
+- Permite monitorizar aplicaciones y servicios específicos (MySQL, nginx, Apache, Docker, etc.).
+- Hace muy sencillo identificar cuellos de botella o problemas de rendimiento.
+- Es muy ligero y consume pocos recursos.
+
+## ¿Sobre qué da control Netdata?
+
+- **Rendimiento general del sistema:** CPU, RAM, uso de disco, cargadores, procesos, etc.
+- **Red:** Tráfico de red, conexiones activas, errores y colisiones en interfaces.
+- **Almacenamiento:** Uso de disco, operaciones de lectura/escritura, IOPS, latencia de discos.
+- **Monitorización de servicios:** Bases de datos (MySQL, MariaDB, PostgreSQL), servidores web (nginx, Apache), Docker, etc.
+- **Alertas:** Permite configurar alertas automáticas por email, Slack, Discord, etc., cuando se superan ciertos umbrales.
+- **Historial:** Visualiza el comportamiento reciente del sistema para encontrar eventos anómalos.
+
+## Resumen
+
+Netdata es una herramienta de monitorización en tiempo real, ligera y muy visual, que permite controlar y vigilar el estado de un sistema Linux y sus servicios, detectar problemas de rendimiento y configurar alertas automáticas. Su activación, desactivación y gestión se realiza de forma sencilla mediante comandos `sudo` y su interfaz web es intuitiva y accesible desde cualquier navegador.
+
+
+## ¿Cómo se activa Netdata?
+
+
+2. **Arranque del servicio**  
+   ```bash
+   sudo systemctl start netdata
+   ```
+
+3. **Habilitar al inicio del sistema**  
+   ```bash
+   sudo systemctl enable netdata
+   ```
+
+4. **Acceso a la interfaz**  
+   - Por defecto, Netdata se accede vía navegador web en el puerto 19999:  
+     `http://<IP_del_servidor>:19999` O Localhost:19999
+
+
+## ¿Cómo se desactiva Netdata?
+
+1. **Parar el servicio temporalmente**
+   ```bash
+   sudo systemctl stop netdata
+   ```
+
+2. **Deshabilitar el arranque automático**
+   ```bash
+   sudo systemctl disable netdata
+   ```
+
+3. **Desinstalar Netdata**
+   ```bash
+   sudo apt remove --purge netdata
+   ```
+# Comandos sudo útiles para Netdata
+
+- **Ver el estado del servicio**
+  ```bash
+  sudo systemctl status netdata
+  ```
+
+- **Iniciar Netdata**
+  ```bash
+  sudo systemctl start netdata
+  ```
+
+- **Detener Netdata**
+  ```bash
+  sudo systemctl stop netdata
+  ```
+
+- **Reiniciar Netdata**
+  ```bash
+  sudo systemctl restart netdata
+  ```
+
+- **Habilitar Netdata al inicio**
+  ```bash
+  sudo systemctl enable netdata
+  ```
+
+- **Deshabilitar Netdata al inicio**
+  ```bash
+  sudo systemctl disable netdata
+  ```
+
+- **Ver logs de Netdata**
+  ```bash
+  sudo journalctl -u netdata
+  ```
+
+- **Editar la configuración**
+  ```bash
+  sudo nano /etc/netdata/netdata.conf
+  ```
+  Después de editar, reiniciar el servicio:
+  ```bash
+  sudo systemctl restart netdata
+  ```

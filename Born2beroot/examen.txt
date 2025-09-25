@@ -1,0 +1,100 @@
+### Parte obligatoria del examen: Configuración y defensa de una máquina virtual
+
+#### 1. Descripción general del proyecto
+El estudiante debe ser capaz de explicarte de forma sencilla:
+- Cómo funciona una máquina virtual.
+- Qué sistema operativo ha elegido.
+- Las diferencias básicas entre CentOS y Debian.
+- El propósito de las máquinas virtuales.
+- Si elige CentOS: qué son SELinux y DNF.
+- Si elige Debian: la diferencia entre aptitude y apt, y qué es APPArmor. 
+  Además, durante la defensa, debe mostrar un script que muestre información cada 10 minutos. 
+  Su funcionamiento será revisado posteriormente. Si las explicaciones no son claras, la evaluación se detiene.
+
+---
+
+#### 2. Configuración inicial sencilla
+- Verifica que la máquina no tenga entorno gráfico al iniciar.
+- Se debe solicitar contraseña antes de conectarse. 
+  El usuario de la conexión no debe ser root y la contraseña debe seguir las normas del enunciado.
+- Comprueba junto al evaluador que el servicio UFW está iniciado.
+- Comprueba junto al evaluador que el servicio SSH está iniciado.
+- Comprueba que el sistema operativo elegido es Debian o CentOS.
+
+---
+
+#### 3. Usuario
+- Debe existir un usuario con el login del estudiante en la máquina virtual, perteneciente a los grupos `sudo` y `user42`.
+- Se deben respetar las normas del enunciado relativas a la política de contraseñas.
+- Crea un usuario nuevo, asígnale contraseña según las normas, y el estudiante debe explicar cómo configuró las reglas de contraseñas.
+- Crea un grupo llamado "evaluating" y añade el usuario.
+- El estudiante debe explicar las ventajas y desventajas de la política de contraseñas implementada.
+
+---
+
+#### 4. Hostname y particiones
+- El hostname debe estar en el formato: login42 (login del estudiante).
+- Cambia el hostname por el tuyo propio y reinicia; si no se actualiza tras reiniciar, la evaluación se detiene.
+- Puedes restaurar el hostname original.
+- El estudiante debe mostrar cómo ver las particiones de la máquina virtual y comparar con el ejemplo del enunciado.
+- El estudiante debe dar una breve explicación de cómo funciona LVM y para qué sirve.
+
+---
+
+#### 5. SUDO
+- Verifica que el programa `sudo` está instalado.
+- El estudiante debe mostrar cómo añadir el usuario al grupo `sudo`.
+- El estudiante debe explicar el valor y funcionamiento de sudo, con ejemplos.
+- Debe mostrar la implementación de las reglas de sudo del enunciado.
+- Verifica que existe la carpeta `/var/log/sudo/` con al menos un archivo, 
+  revisa el historial de comandos sudo y ejecuta un comando para comprobar que el log se actualiza.
+
+---
+
+#### 6. UFW
+- Verifica que el programa `ufw` está instalado y funciona correctamente.
+- El estudiante debe explicar qué es UFW y para qué sirve.
+- Enumera las reglas activas; debe existir una regla para el puerto 4242.
+- Añade una regla para abrir el puerto 8080 y comprueba que está activa.
+- Elimina la regla creada para el puerto 8080.
+
+---
+
+#### 7. SSH
+- Verifica que el servicio SSH está instalado y funcionando.
+- El estudiante debe explicar qué es SSH y para qué sirve.
+- Asegúrate de que el servicio solo permite el puerto 4242.
+- El estudiante debe mostrar cómo conectarse por SSH con el usuario creado, usando clave o contraseña simple. 
+  No debe ser posible conectarse como root vía SSH.
+
+---
+
+### Script Monitoring
+
+- El estudiante debe explicar de manera sencilla cómo funciona su script, mostrando el código.
+- Debe explicar qué es “cron”.
+- El estudiante debe explicar cómo configuró su script para que se ejecute cada 10 minutos desde el arranque del servidor. 
+  Tras comprobar su correcto funcionamiento, debe asegurarse de que el script se ejecute cada minuto.
+- Se debe poder comprobar que el script se ejecuta con valores dinámicos correctamente.
+- El estudiante debe ser capaz de hacer que el script deje de ejecutarse una vez que el servidor haya arrancado, pero sin modificar el script. 
+  Para comprobar esto, habrá que reiniciar el servidor una vez más.
+- Al arrancar, se debe comprobar que el script sigue existiendo en el mismo lugar, que los permisos no han cambiado y que no ha sido modificado.
+
+Si algo no funciona o no se explica claramente, la evaluación se detiene.
+
+---
+
+### Bonus
+
+Solo se evalúa el bonus si la parte obligatoria está perfectamente realizada y la gestión de errores funciona correctamente. 
+Si no se han completado todos los puntos obligatorios, las bonificaciones no se tienen en cuenta.
+
+- Montar particiones correctamente: 2 puntos.
+- Instalar WordPress, únicamente con los servicios requeridos: 2 puntos.
+- Servicio extra a elección: 1 punto. Se debe verificar el funcionamiento e implementación. 
+  El estudiante debe dar una explicación de cómo funciona y por qué es útil. 
+  (No está permitido usar NGINX ni Apache2 para el servicio extra).
+
+---
+
+**Calificación:** De 0 (suspenso) a 5 (excelente).

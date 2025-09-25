@@ -1,0 +1,264 @@
+# Explicación Detallada del Script de Monitorización
+
+
+
+## 1. ¿Qué hace un script?
+
+El script recopila información relevante sobre el estado del sistema (arquitectura, CPU, RAM, disco, red, usuarios, etc.) y envía un mensaje con estos datos a todos los usuarios conectados mediante el comando `wall`. Es útil para monitorización rápida, exámenes o administración de sistemas.
+
+
+### 1. Arquitectura del sistema
+
+```bash
+arch=$(uname -a)
+```
+- **Comando:** `uname -a`
+- **Sintaxis:**  
+  - `uname`: muestra información del sistema.
+  - `-a`: muestra toda la información disponible (kernel, hostname, versión, arquitectura, etc.).
+- **Función en el script:**  
+  Guarda en la variable `arch` la información sobre el kernel, hostname, versión, arquitectura, etc.
+
+---
+
+### 2. CPUs físicos
+
+```bash
+pcpu=$(grep "physical id" /proc/cpuinfo | sort | uniq | wc -l)
+```
+- **Comando:** `grep`, `sort`, `uniq`, `wc -l`
+- **Sintaxis:**
+  - `grep "physical id" /proc/cpuinfo`: busca las líneas con "physical id" en el fichero de información de CPU.
+  - `sort | uniq`: elimina duplicados.
+  - `wc -l`: cuenta el número de líneas únicas encontradas.
+- **Función en el script:**  
+  Cuenta el número de CPUs físicas (procesadores reales instalados).
+
+---
+
+### 3. CPUs virtuales (núcleos lógicos)
+
+```bash
+vcpu=$(grep "processor" /proc/cpuinfo | wc -l)
+```
+- **Comando:** `grep`, `wc -l`
+- **Sintaxis:**  
+  - `grep "processor" /proc/cpuinfo`: busca cada entrada de procesador lógico.
+  - `wc -l`: cuenta el número de líneas, es decir, núcleos lógicos (incluye hyperthreading).
+- **Función en el script:**  
+  Determina cuántos hilos lógicos tiene el sistema.
+
+---
+
+### 4. Uso de memoria RAM
+
+```bash
+ram_total=$(free -m | awk '$1 == "Mem:" {print $2}')
+ram_use=$(free -m | awk '$1 == "Mem:" {print $3}')
+ram_percent=$(free -m | awk '$1 == "Mem:" {printf("%.2f", $3/$2*100)}')
+```
+- **Comando:** `free -m`, `awk`
+- **Sintaxis:**
+  - `free -m`: muestra el uso de memoria en MB.
+  - `awk '$1 == "Mem:" {print $2}'`: extrae el total de memoria.
+  - `awk '$1 == "Mem:" {print $3}'`: extrae la memoria usada.
+  - `awk '$1 == "Mem:" {printf("%.2f", $3/$2*100)}'`: calcula el porcentaje de uso.
+- **Función en el script:**  
+  Extrae la memoria total, usada y el porcentaje de uso de RAM.
+
+---
+
+### 5. Uso de disco
+
+```bash
+disk_total=$(df -BG | grep "^/dev/" | grep -v '/boot' | awk '{disk_t += $2} END {print disk_t}')
+disk_use=$(df -BG | grep "^/dev/" | grep -v '/boot' | awk '{disk_u += $3} END {print disk_u}')
+disk_percent=$(df -BG | grep "^/dev/" | grep -v '/boot' | awk '{disk_u += $3; disk_t += $2} END {printf("%d", disk_u/disk_t*100)}')
+```
+- **Comando:** `df -BG`, `grep`, `awk`
+- **Sintaxis:**
+  - `df -BG`: muestra el uso de disco en GB.
+  - `grep "^/dev/"`: filtra solo las particiones de dispositivos reales.
+  - `grep -v '/boot'`: excluye la partición `/boot`.
+  - `awk '{disk_t += $2} END {print disk_t}'`: suma el total de disco.
+  - `awk '{disk_u += $3} END {print disk_u}'`: suma el disco usado.
+  - `awk '{disk_u += $3; disk_t += $2} END {printf("%d", disk_u/disk_t*100)}'`: calcula el porcentaje de uso.
+- **Función en el script:**  
+  Calcula el uso total, usado y porcentaje del disco (sin contar `/boot`).
+
+---
+
+### 6. Carga de CPU
+
+```bash
+cpul=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf("%.1f", usage)}')
+```
+- **Comando:** `grep`, `awk`
+- **Sintaxis:**
+  - `cat /proc/stat | grep 'cpu '`: obtiene estadísticas de CPU.
+  - `awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf("%.1f", usage)}'`: calcula el porcentaje de uso.
+- **Función en el script:**  
+  Determina el porcentaje de carga de CPU.
+
+---
+
+### 7. Último arranque
+
+```bash
+lb=$(who -b | awk '$1 == "system" {print $3 " " $4}')
+```
+- **Comando:** `who -b`, `awk`
+- **Sintaxis:**
+  - `who -b`: muestra la fecha y hora del último arranque.
+  - `awk '$1 == "system" {print $3 " " $4}'`: extrae fecha y hora.
+- **Función en el script:**  
+  Muestra cuándo se arrancó el sistema por última vez.
+
+---
+
+### 8. Uso de LVM
+
+```bash
+lvmu=$(if lsblk -o TYPE | grep -iq "lvm$"; then echo yes; else echo no; fi)
+```
+- **Comando:** `lsblk -o TYPE`, `grep -iq "lvm$"`
+- **Sintaxis:**
+  - `lsblk -o TYPE`: muestra los tipos de dispositivos de bloque.
+  - `grep -iq "lvm$"`: busca si hay algún volumen lógico.
+  - Estructura `if ...; then ...; else ...; fi`: condicional.
+- **Función en el script:**  
+  Indica si se utiliza LVM para gestionar discos.
+
+---
+
+### 9. Conexiones TCP establecidas
+
+```bash
+ctcp=$(ss -Ht state established | wc -l)
+```
+- **Comando:** `ss -Ht state established`, `wc -l`
+- **Sintaxis:**
+  - `ss -Ht state established`: lista las conexiones TCP activas.
+  - `wc -l`: cuenta cuántas hay.
+- **Función en el script:**  
+  Cuenta las conexiones TCP abiertas y establecidas.
+
+---
+
+### 10. Usuarios conectados
+
+```bash
+ulog=$(users | wc -w)
+```
+- **Comando:** `users`, `wc -w`
+- **Sintaxis:**
+  - `users`: lista los usuarios conectados.
+  - `wc -w`: cuenta cuántos usuarios hay.
+- **Función en el script:**  
+  Muestra el número de usuarios actualmente conectados.
+
+---
+
+### 11. Red: IP y MAC
+
+```bash
+ip=$(hostname -I | awk '{print $1}')
+mac=$(ip link show | grep "ether" | awk '{print $2}')
+```
+- **Comando:** `hostname -I`, `ip link show`, `grep`, `awk`
+- **Sintaxis:**
+  - `hostname -I | awk '{print $1}'`: obtiene la IP principal.
+  - `ip link show | grep "ether" | awk '{print $2}'`: obtiene la dirección MAC.
+- **Función en el script:**  
+  Extrae la IP y MAC de la interfaz de red principal.
+
+---
+
+### 12. Comandos sudo ejecutados
+
+```bash
+cmmd=$(journalctl _COMM=sudo | grep COMMAND | wc -l)
+```
+- **Comando:** `journalctl _COMM=sudo`, `grep COMMAND`, `wc -l`
+- **Sintaxis:**
+  - `journalctl _COMM=sudo`: busca en el journal los comandos ejecutados con sudo.
+  - `grep COMMAND`: filtra las líneas relevantes.
+  - `wc -l`: cuenta cuántos comandos se han ejecutado.
+- **Función en el script:**  
+  Muestra cuántos comandos sudo se han ejecutado.
+
+---
+
+### 13. Envío del mensaje a todos los usuarios
+
+```bash
+wall -n "#Architecture: $arch
+#CPU physical : $pcpu
+#vCPU : $vcpu
+#Memory Usage: $ram_use/$ram_total MB ($ram_percent%)
+#Disk Usage: $disk_use/$disk_total Gb ($disk_percent%)
+#CPU load: $cpul%
+#Last boot: $lb
+#LVM use: $lvmu
+#Connections TCP : $ctcp ESTABLISHED
+#User log: $ulog
+#Network:  IP $ip ($mac)
+#sudo : $cmmd cmd"
+```
+- **Comando:** `wall -n`
+- **Sintaxis:**  
+  - `wall`: envía un mensaje a todos los usuarios conectados.
+  - `-n`: no añade el banner con el nombre del usuario que ejecuta el comando.
+- **Función en el script:**  
+  Muestra el resumen de monitorización a todos los usuarios conectados por terminal.
+
+---
+
+## 3. ¿Cómo hacer que el script se ejecute solo una vez tras el arranque? (Sin modificar el script)
+
+### **Solución usando un archivo bandera (flag file)**
+
+Si no puedes modificar el script original, puedes usar un **wrapper** (envoltorio) para asegurarte que solo se ejecuta una vez tras cada arranque.
+
+### **Ejemplo de wrapper:**
+
+```bash
+#!/bin/bash
+FLAG="/var/run/monitoringsh_ejecutado"
+
+if [ -f "$FLAG" ]; then
+    # Ya se ejecutó, no hacer nada
+    exit 0
+fi
+
+# Ejecutar el script de monitorización
+/usr/local/bin/monitoringsh.sh
+
+# Crear el archivo bandera para que no se vuelva a ejecutar
+touch "$FLAG"
+```
+
+- **¿Cómo funciona?**
+  1. Comprueba si existe el archivo bandera (`/var/run/monitoringsh_ejecutado`).
+  2. Si existe, sale sin hacer nada.
+  3. Si no existe, ejecuta el script y crea el archivo bandera.
+- **¿Dónde ponerlo?**
+  - Puedes ejecutar este wrapper al inicio del sistema, por ejemplo:
+    - En `crontab` con la opción `@reboot`
+    - En `/etc/rc.local`
+    - Como servicio `systemd`
+- **Ventajas:**
+  - **No necesitas modificar el script original**.
+  - Controlas la ejecución única desde fuera.
+  - Solución profesional, reutilizable y segura.
+
+---
+
+## 4. Resumen y Justificación
+
+- El script obtiene toda la información con comandos estándar de Linux y los muestra de forma resumida y clara.
+- Cada variable se llena con el resultado de un comando, usando pipes y redirecciones.
+- El uso de un wrapper con archivo bandera permite controlar la ejecución del script de forma externa, sin alterar el código original.
+- Este patrón es habitual y recomendable en administración de sistemas.
+
+---

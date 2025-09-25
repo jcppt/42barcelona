@@ -1,0 +1,367 @@
+# Born2beRoot — Checklist de Defensa, Pruebas y Preguntas Explicadas
+
+
+sudo
+
+sudo es una herramienta de los sistemas operativos Unix y Linux que permite a un usuario autorizado ejecutar comandos con los privilegios de otro usuario, normalmente el usuario root (administrador).
+Explicación sencilla:
+    • Cuando usas sudo, el sistema te permite ejecutar tareas administrativas o críticas, como instalar software o modificar archivos de configuración.
+    • Antes de ejecutar el comando, sudo te pedirá tu contraseña (no la de root, sino la tuya).
+    • Esto se usa para mayor seguridad: así no necesitas iniciar sesión como root y reduces el riesgo de errores graves o ataques.
+sudo sirve para que usuarios normales puedan ejecutar comandos de administración temporalmente, sin necesidad de iniciar sesión directamente como root, lo cual es más seguro y controlado. Además, sudo puede registrar qué usuario ejecutó cada comando y limitar quién puede usarlo y para qué comandos.
+
+SSH (Secure Shell) es un protocolo de red que permite acceder y gestionar de manera segura un sistema remoto a través de una red no segura.
+Explicación sencilla:
+    • Permite conectarse a otro ordenador (servidor) de forma segura, usando cifrado para que nadie pueda ver lo que se transmite.
+    • Es la forma estándar de administrar sistemas Linux/Unix a distancia.
+    • Se utiliza principalmente para abrir una terminal remota, transferir archivos (con scp o sftp), y realizar tareas administrativas.
+Ejemplo de uso:
+Bash       ssh usuario@ip_del_servidor -p puerto
+
+Diferencias entre aptitude y apt
+
+apt
+
+Es la herramienta de gestión de paquetes estándar en Debian y Ubuntu, diseñada para usuarios finales.
+Ofrece comandos sencillos (instalar, actualizar, eliminar paquetes).
+No tiene interfaz gráfica, solo línea de comandos.
+Ejemplo:
+
+Code
+sudo apt update
+sudo apt install nombre_paquete
+
+aptitude
+
+Es otra herramienta de gestión de paquetes para sistemas basados en Debian.
+Permite hacer todo lo que hace apt, pero además ofrece una interfaz TUI (texto interactivo) para navegar y seleccionar paquetes.
+Es más avanzada en la resolución de dependencias, sugiriendo soluciones alternativas si hay conflictos.
+No suele venir instalada por defecto, hay que instalarla.
+
+Ejemplo: Code sudo aptitude install nombre_paquete
+
+Resumen: apt es más simple y estándar; aptitude es más avanzado y flexible para resolver problemas de dependencias y tiene una interfaz más amigable para usuarios avanzados.
+
+
+
+
+
+2. ¿Qué son SELinux y AppArmor?
+
+SELinux (Security-Enhanced Linux):
+
+Es un sistema de control de acceso obligatorio (MAC) desarrollado por la NSA.
+Permite definir políticas de seguridad muy granulares sobre qué puede hacer cada proceso.
+Muy utilizado en sistemas RedHat, CentOS, Fedora y Rocky Linux.
+Puede ser complejo de configurar, pero ofrece un nivel de seguridad muy alto.
+Ejemplo: puedes permitir que un proceso solo lea un archivo específico, pero no escriba en él.
+
+
+AppArmor:
+
+Es otro sistema de control de acceso obligatorio (MAC), usado principalmente en Ubuntu y Debian.
+Utiliza perfiles que definen qué archivos y recursos puede usar cada programa.
+Es más fácil de configurar que SELinux, pero menos detallado.
+Los perfiles suelen estar en /etc/apparmor.d/.
+Diferencias principales:
+
+SELinux es más potente y complejo, con políticas muy detalladas.
+AppArmor es más sencillo de administrar y entender, pero ofrece menos granularidad.
+Ambos refuerzan la seguridad limitando lo que pueden hacer los programas, incluso si un atacante consigue acceso al sistema.
+
+3. Resumen para defensa
+
+Debes saber cuál está activo en tu sistema (SELinux en Rocky, AppArmor en Debian/Ubuntu). Explica cuándo usarías uno u otro:
+
+SELinux para entornos donde la seguridad es crítica y tienes tiempo para aprender sus políticas.
+
+AppArmor para entornos donde prefieres facilidad de configuración.
+
+2. Preguntas Teóricas, Ejemplos y Explicaciones
+
+### 2.1. Aptitude vs Apt
+
+- **apt**: Herramienta moderna para gestionar paquetes en Debian/Ubuntu. Más sencilla y rápida para tareas habituales.
+- **aptitude**: Interfaz más avanzada, permite resolver dependencias de forma interactiva, interfaz TUI.
+
+- **Pregunta:** ¿Qué diferencia hay entre `apt` y `aptitude`?
+  - **Respuesta:** `apt` es más simple y rápido para tareas comunes, mientras que `aptitude` permite una gestión más avanzada y una interfaz interactiva para resolver dependencias.
+
+### 2.2. SELinux vs AppArmor
+
+- **SELinux**: Sistema de control de acceso obligatorio (MAC) muy granular. Usado en RedHat/Fedora/Rocky.
+- **AppArmor**: Sistema de perfiles más sencillo, fácil de configurar. Usado en Debian/Ubuntu.
+
+- **Pregunta:** ¿Qué es SELinux/AppArmor y diferencias?
+  - **Respuesta:** Ambos son sistemas de control de acceso para reforzar la seguridad a nivel de kernel, pero SELinux es más complejo y granular, AppArmor es más fácil de configurar pero menos detallado.
+
+### 2.3. SSH
+
+- **¿Por qué no permitir login root por SSH?**
+  - **Respuesta:** Para evitar ataques de fuerza bruta al usuario root, se obliga a usar usuarios normales y luego `sudo`.
+
+- **¿Cómo cambiar el puerto de SSH?**
+  - Editar `/etc/ssh/sshd_config` y poner `Port 4242`, luego `sudo systemctl restart sshd`.
+
+### 2.4. Firewall
+
+- **¿Por qué usar UFW/firewalld?**
+  - Para limitar los servicios accesibles desde fuera y reducir la superficie de ataque.
+
+- **¿Cómo permitir solo el puerto 4242?**
+  - UFW:  
+    ```
+    sudo ufw allow 4242/tcp
+    sudo ufw enable
+    sudo ufw deny ssh
+    ```
+  - firewalld:  
+    ```
+    sudo firewall-cmd --add-port=4242/tcp --permanent
+    sudo firewall-cmd --reload
+    ```
+
+### 2.5. Contraseñas
+
+- **¿Cómo se fuerza la política de contraseñas?**
+  - Usando `pam_pwquality` o similar (`/etc/security/pwquality.conf`).
+- **¿Qué opciones clave se usan?**
+  - `minlen=10`, `minclass=3`, `maxrepeat=3`, `usercheck=1`, etc.
+
+### 2.6. Sudo
+
+- **¿Por qué registrar input/output de sudo?**
+  - Para auditoría y trazabilidad de comandos críticos ejecutados con privilegios.
+- **¿Qué hace la opción requiretty?**
+  - Obliga a que sudo solo pueda usarse desde terminal interactiva, no desde scripts.
+
+### 2.7. monitoring.sh
+
+- **¿Qué comandos usas para obtener la información?**
+  - Arquitectura: `uname -a`
+  - Núcleos físicos: `lscpu | grep 'Socket(s)'`
+  - Núcleos virtuales: `nproc`
+  - RAM: `free -m`
+  - Disco: `df -h`
+  - CPU load: `top -bn1 | grep %Cpu`
+  - Último reinicio: `who -b`
+  - LVM: `lsblk`
+  - Conexiones activas: `ss | grep ESTAB | wc -l`
+  - Usuarios: `who | wc -l`
+  - IP y MAC: `ip a`, `ip link`
+  - Sudo count: `journalctl | grep COMMAND= | wc -l` o leyendo logs de sudo.
+
+- **¿Cómo lo ejecutas cada 10 minutos en todos los terminales?**
+  - Usando cron y el comando `wall`.
+- **¿Cómo lo paras?**
+  - Quitando la línea del cron: `crontab -e` y comentar/eliminar.
+
+### 2.8. Bonus: Particiones y Servicios
+
+- **Particiones**:  
+  - Asegúrate de tener `/`, `/home`, `/var`, `/tmp` como mínimo, y si puedes `/boot`.
+  - Comando para ver: `lsblk`, `df -h`
+
+- **WordPress**
+  - Debe estar accesible desde el navegador en el puerto definido (por ejemplo, 80 o 8080).
+  - Comprobar estado: `systemctl status lighttpd`, acceso a `http://IP`
+
+
+- **Servicio adicional**
+  - Explica por qué lo elegiste (ejemplo: `fail2ban` para seguridad, `vsftpd` para FTP, etc.).
+
+---
+
+## 3. Ejemplo de Salida de monitoring.sh
+
+```bash
+Broadcast message from root@jcppt42 (tty1) (Tue Jul 1 09:00:00 2025):
+#Architecture: Linux jcppt42 6.1.0-17-amd64 x86_64 GNU/Linux
+#CPU physical : 2
+#vCPU : 4
+#Memory Usage: 1200/4096MB (29.30 %)
+#Disk Usage: 6G/25G (24 %)
+#CPU load: 5.2 %
+#Last boot: 2025-07-01 07:44
+#LVM use: yes
+#TCP Connections : 4 ESTABLISHED
+#User log: 1
+#Network: IP 192.168.1.42 (02:42:ac:11:00:02)
+#Sudo : 15 cmd
+```
+
+---
+
+## 4. Consejos para la Defensa
+
+- **Haz pruebas en vivo**: Pide al evaluador que cree un usuario y verifica que todas las restricciones y políticas aplican.
+- **Demuestra cada punto**: Usa comandos rápidos y explica cada configuración.
+- **Sé claro con las diferencias entre Debian/Rocky**: Algunos comandos y rutas cambian.
+- **Documenta todo en un README**: Llévalo contigo por si te lo permiten consultar.
+
+---
+
+## 5. Resumen de comandos útiles rápidos
+
+```bash
+# SSH
+sudo ss -tuln | grep 4242
+sudo grep PermitRootLogin /etc/ssh/sshd_config
+
+# Firewall
+sudo ufw status
+sudo firewall-cmd --list-all
+
+# Hostname
+hostnamectl
+
+# Contraseñas
+sudo chage -l jcppt
+grep pam_pwquality /etc/pam.d/common-password
+
+# Sudo
+sudo -l
+sudo visudo
+
+# monitoring.sh
+sudo ./monitoring.sh
+
+# Particiones
+lsblk
+df -h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############GUIA DE COMANDOS###########
+
+Este documento te servirá como **guía total** para tu defensa Born2beRoot, tanto para la parte obligatoria (mandatory) como para la bonus. Incluye una lista de **tests y pruebas prácticas**, así como **preguntas teóricas** y **explicaciones** para cada aspecto que pueden preguntarte en el examen. También te ofrece ejemplos y comandos de comprobación.
+
+---
+
+## 1. Checklist de Pruebas y Tests Prácticos
+
+### 1.1. SSH y Seguridad de Acceso
+
+- [ ] **SSH escucha en puerto 4242**  
+  - Comando: `sudo ss -tuln | grep 4242`  
+  - Ejemplo: tcp   LISTEN 0      128    0.0.0.0:4242    0.0.0.0:*
+    ```
+- [ ] **No permite login SSH como root**  
+  - Comando: `grep PermitRootLogin /etc/ssh/sshd_config`  
+  - Debe ser: `PermitRootLogin no`
+  - Prueba: Intenta `ssh root@IP -p 4242` y debe rechazar el acceso.
+
+- [ ] **Prueba de crear y conectar con nuevo usuario**  
+  - Comando para crear: `sudo adduser testuser`  
+  - Conectar: `ssh testuser@IP -p 4242`
+
+### 1.2. Firewall
+
+- [ ] **Solo el puerto 4242 está abierto**  
+  - UFW (Debian):  
+    - Comando: `sudo ufw status numbered`
+    - Debe mostrar solo el 4242/tcp como ALLOW
+  
+
+- [ ] **Firewall activo**  
+  - UFW: `sudo ufw status` (debe decir 'active')
+  
+
+### 1.3. Hostname
+
+- [ ] **El hostname es tu login42**  
+  - Comando: `hostnamectl`
+  - Debe ser: `jcppt42` (si tu login es jcppt)
+
+- [ ] **Puedes cambiar el hostname**  
+  - Comando: `sudo hostnamectl set-hostname nuevonombre`
+
+### 1.4. Política de Contraseñas
+
+- [ ] **Política de expiración y complejidad**  
+
+  - Comandos clave:
+  
+    - Ver política: `sudo chage -l jcppt`
+    - Verifica:  
+      - Máximo: 30 días  
+      - Mínimo: 2 días  
+      - Aviso: 7 días antes  
+    - Complejidad: `/etc/pam.d/common-password` (Debian) o `/etc/security/pwquality.conf`  
+      - Mínimo 10 caracteres, mayúscula, minúscula, número, sin más de 3 repetidos, no contener nombre usuario
+  - Prueba: Intenta cambiar la contraseña con una que no cumpla requisitos y verifica que no lo permite.
+
+### 1.5. Sudo Configuración y Seguridad
+
+- [ ] **Solo 3 intentos de contraseña con sudo**  
+  - `/etc/sudoers`: `passwd_tries=3`
+- [ ] **Mensaje personalizado de error sudo**  
+  - `/etc/sudoers`: `badpass_message="Mensaje personalizado"`
+- [ ] **Logs en `/var/log/sudo/`**  
+  - `/etc/sudoers`:  
+    ```
+    Defaults log_output
+    Defaults!/usr/bin/sudo log_output
+    Defaults iolog_dir="/var/log/sudo"
+    ```
+- [ ] **Modo TTY activado**  
+  - `/etc/sudoers`: `Defaults requiretty`
+- [ ] **Restricción de PATH**  
+  - `/etc/sudoers`: `Defaults secure_path=...`
+- [ ] **Usuario pertenece a user42 y sudo**  
+  - Comando: `groups jcppt`
+  - Debe mostrar: `jcppt : jcppt user42 sudo`
+
+### 1.6. monitoring.sh (Script de Monitorización)
+
+- [ ] **Script existe y es ejecutable**  
+  - `ls -l /path/monitoring.sh`
+- [ ] **Se ejecuta cada 10 minutos y muestra info con wall**  
+
+  - Busca en crontab: `crontab -l`  
+    - Ejemplo:  
+      ```
+      */10 * * * * /path/monitoring.sh
+      ```
+  - Al ejecutar: `sudo ./monitoring.sh` debe mostrar la info detallada (ver ejemplo abajo).
+
+- [ ] **Ningún error visible al ejecutar**  
+- [ ] **Puedes explicar cómo interrumpirlo y cómo funciona**  
+  - Interrupción: Borrando el cron o script, o con `crontab -e` y comentar línea.
+
+---
+
+## 

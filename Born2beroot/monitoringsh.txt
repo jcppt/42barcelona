@@ -1,0 +1,312 @@
+﻿ El objetivo es que entiendas cada instrucción y cada símbolo.
+
+### 1. Shebang
+
+```bash
+#!/bin/bash
+```
+- **Significado**: Indica que el script debe ser ejecutado con el intérprete `/bin/bash`.
+- **Ejemplo**: Si ejecutas el script, usará Bash automáticamente.
+
+---
+
+### 2. Obteniendo la arquitectura
+
+```bash
+arch=$(uname -a)
+```
+- **arch=**: Declara y asigna una variable llamada `arch`.
+- **$(...)**: Es una sustitución de comandos. Ejecuta el comando entre paréntesis y reemplaza el resultado.
+- **uname -a**: Muestra información del sistema (kernel, máquina, etc).
+- **Ejemplo**: Si `uname -a` devuelve `Linux pc 5.4.0-42-generic ...`, entonces `arch` tendrá ese texto.
+
+---
+
+### 3. CPU físico
+
+```bash
+pcpu=$(grep "physical id" /proc/cpuinfo | sort | uniq | wc -l)
+```
+- **pcpu=**: Variable para CPUs físicos.
+- **grep "physical id" /proc/cpuinfo**: Busca líneas con "physical id" en el archivo `/proc/cpuinfo`.
+- **  |  **: El pipe pasa la salida de un comando al siguiente.
+- **sort**: Ordena las líneas.
+- **uniq**: Quita duplicados.
+- **wc -l**: Cuenta líneas (número de CPUs físicos).
+- **Ejemplo**: Si hay 2 "physical id" distintos, devuelve 2.
+
+---
+
+### 4. CPU virtual
+
+```bash
+vcpu=$(grep "processor" /proc/cpuinfo | wc -l)
+```
+- Busca "processor" (núcleos lógicos), cuenta líneas.
+
+---
+
+### 5. RAM total y usada
+
+```bash
+ram_total=$(free -m | awk '$1 == "Mem:" {print $2}')
+ram_use=$(free -m | awk '$1 == "Mem:" {print $3}')
+```
+- **free -m**: Muestra memoria, en MB.
+- **awk**: Procesa el texto de entrada.
+  - **'$1 == "Mem:" {print $2}'**: Si la primera columna es "Mem:", imprime la segunda (total).
+  - **'$1 == "Mem:" {print $3}'**: Similar pero imprime la tercera (usada).
+- **Ejemplo**: Si `free -m` muestra `Mem:  7972  2345 ...`, `ram_total=7972`, `ram_use=2345`.
+
+---
+
+### 6. Porcentaje de RAM usada
+
+```bash
+ram_percent=$(free -m | awk '$1 == "Mem:" {printf("%.2f", $3/$2*100)}')
+```
+- **printf("%.2f", ...)**: Imprime un número con 2 decimales.
+- **$3/$2*100**: Calcula el porcentaje de uso de RAM.
+- **Ejemplo**: Si $3=2345 y $2=7972, resultado ≈ 29.42.
+
+---
+
+### 7. Espacio en disco
+
+```bash
+disk_total=$(df -BG | grep "^/dev/" | grep -v '/boot$' | awk '{disk_t += $2} END {print disk_t}')
+disk_use=$(df -BG | grep "^/dev/" | grep -v '/boot$' | awk '{disk_u += $3} END {print disk_u}')
+disk_percent=$(df -BG | grep "^/dev/" | grep -v '/boot$' | awk '{disk_u += $3; disk_t += $2} END {printf("%d", disk_u/disk_t*100)}')
+```
+- **df -BG**: Muestra uso de disco en GB.
+- **grep "^/dev/"**: Solo particiones reales.
+- **grep -v '/boot$'**: Excluye `/boot` (v = inverso).
+- **awk ...**:
+  - **disk_t += $2**: Suma el tamaño total de cada partición.
+  - **disk_u += $3**: Suma el espacio usado.
+  - **END {print ...}**: Al final, imprime el total.
+  - **printf("%d", ...)**: Imprime entero.
+
+---
+
+### 8. Carga de CPU
+
+```bash
+cpul=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf("%.1f", usage)}')
+```
+- **/proc/stat**: Contiene estadísticas de CPU.
+- **$2, $4, $5**: Campos de tiempos de CPU (usuario, sistema, inactivo).
+- **usage=...**: Calcula el % de uso de CPU.
+- **printf("%.1f", ...)**: Un decimal.
+- **Nota**: Esto es una aproximación, no el valor real de `top`.
+
+---
+
+### 9. Último arranque
+
+```bash
+lb=$(who -b | awk '$1 == "system" {print $3 " " $4}')
+```
+- **who -b**: Muestra la última vez que el sistema arrancó.
+- **awk ...**: Si la primera columna es "system", imprime la fecha y hora.
+
+---
+
+### 10. LVM (Logical Volume Manager)
+
+```bash
+lvm=$(if lsblk -o TYPE | grep -iq "lvm"; then echo yes; else echo no; fi)
+```
+- **if ... then ... else ... fi**: Estructura condicional en Bash.
+- **lsblk -o TYPE**: Muestra tipo de dispositivos.
+- **grep -iq "lvm"**: Busca "lvm", ignora mayúsculas/minúsculas, salida silenciosa.
+- **echo yes/no**: Devuelve "yes" si existe, "no" si no.
+
+---
+
+### 11. Conexiones TCP establecidas
+
+```bash
+ctcp=$(ss -H state established | wc -l)
+```
+- **ss -H state established**: Lista conexiones TCP en estado "established".
+- **wc -l**: Cuenta cuántas hay.
+
+---
+
+### 12. Usuarios conectados
+
+```bash
+ulog=$(users | wc -w)
+```
+- **users**: Muestra los usuarios conectados.
+- **wc -w**: Cuenta palabras (usuarios).
+
+---
+
+### 13. Dirección IP y MAC
+
+```bash
+ip=$(hostname -I | awk '{print $1}')
+mac=$(ip link show | grep "ether" | awk '{print $2}')
+```
+- **hostname -I**: IPs del host, toma la primera.
+- **ip link show | grep "ether"**: Busca la línea con la MAC address.
+- **awk '{print $2}'**: Imprime la segunda columna (dirección MAC).
+
+---
+
+### 14. Comandos sudo ejecutados
+
+```bash
+cmnd=$(journalctl _COMM=sudo | grep COMMAND | wc -l)
+```
+- **journalctl _COMM=sudo**: Muestra logs de comandos sudo.
+- **grep COMMAND**: Busca líneas con "COMMAND".
+- **wc -l**: Cuenta cuántos comandos.
+
+---
+
+### 15. Salida del reporte
+
+```bash
+wall -n "#Architecture: $arch
+#CPU physical : $pcpu
+#vCPU : $vcpu
+..."
+```
+- **wall -n**: Manda el mensaje a todos los usuarios conectados, opción -n para no mostrar banner.
+- **Variables**: `$arch`, `$pcpu`, etc., se expanden con sus valores calculados antes.
+- **Texto entre comillas dobles**: Permite expansión de variables.
+- **Ejemplo**: Si `arch="Linux ..."` y `pcpu=2`, imprime esa información.
+
+---
+
+## Resumen de símbolos y sintaxis
+
+- **$(...)**: Sustitución de comandos.
+- Ejemplo: `var=$(ls -l)` asigna la salida de `ls -l` a la variable `var`.
+
+- **[ ... ]**: Prueba una condición en Bash.
+- Ejemplo: `[ $a -eq 1 ]`
+
+- **[[ ... ]]**: Prueba condicional mejorada en Bash.
+- **{ ... }**: En `awk` y `printf`, delimitan bloques de código o formatos.
+- **" ... "**: Expande variables dentro, permite espacios.
+- **' ... '**: No expande variables, texto literal.
+- **  |  **: Pipe, pasa la salida de un comando al siguiente.
+- ** ; **: Separador de comandos en la misma línea.
+- ** fi **: Finaliza un bloque `if`.
+
+---
+
+## Ejemplo simple
+
+```bash
+x=5
+if [ $x -eq 5 ]; then
+  echo "x es cinco"
+fi
+```
+
+---
+
+¿Qué es wall?
+    • wall (write all) es un comando que envía un mensaje a todos los usuarios conectados al sistema.
+    • La opción -n evita mostrar el encabezado predeterminado ("Broadcast message from ...").
+
+¿Qué información muestra el wall?
+Todo lo mostrado en wall es información del sistema que previamente se calculó y guardó en variables. El mensaje usa expansión de variables (como $arch, $pcpu, etc.) para mostrar los valores actuales.
+Ejemplo de mensaje:
+Code
+#Architecture: x86_64 GNU/Linux
+#CPU physical : 2
+#vCPU : 4
+#Memory Usage: 2048/8192MB (25.0%)
+#Disk Usage: 30/100Gb (30%)
+#CPU load: 10.2%
+#Last boot: 2024-07-03 12:00
+#LVM use: yes
+#Connections TCP : 4 ESTABLISHED
+#User log: 2
+#Network: IP 192.168.0.10 (00:11:22:33:44:55)
+#sudo : 20 cmd
+
+¿De dónde sale cada dato?
+Te lo detallo uno a uno, explicando cómo se calcula y cómo se muestra:
+1. #Architecture: $arch
+    • $arch: contiene la salida de uname -a, que muestra la arquitectura y el sistema operativo.
+    • Cálculo: arch=$(uname -a)
+
+2. #CPU physical : $pcpu
+    • $pcpu: número de CPUs físicos.
+    • Cálculo: pcpu=$(grep "physical id" /proc/cpuinfo | sort | uniq | wc -l)
+        ◦ Busca IDs físicos únicos en /proc/cpuinfo.
+
+3. #vCPU : $vcpu
+    • $vcpu: número de CPUs virtuales (núcleos lógicos).
+    • Cálculo: vcpu=$(grep "processor" /proc/cpuinfo | wc -l)
+        ◦ Cuenta cuántos procesadores virtuales hay.
+
+4. #Memory Usage: $ram_use/$ram_total MB ($ram_percent%)
+    • $ram_use: memoria usada (en MB).
+    • $ram_total: memoria total (en MB).
+    • $ram_percent: porcentaje de uso.
+    • Cálculo: con free -m y awk.
+        ◦ Ejemplo: ram_use=2048, ram_total=8192, ram_percent=25.0
+
+5. #Disk Usage: $disk_use/$disk_total Gb ($disk_percent%)
+    • $disk_use: espacio usado (en GB).
+    • $disk_total: espacio total (en GB).
+    • $disk_percent: porcentaje de uso.
+    • Cálculo: usando df -BG, awk, y sumando las particiones.
+
+6. #CPU load: $cpul%
+    • $cpul: porcentaje de carga de CPU actual.
+    • Cálculo: usando /proc/stat y calculando el % activo.
+
+7. #Last boot: $lb
+    • $lb: última vez que se inició el sistema.
+    • Cálculo: lb=$(who -b | awk '$1 == "system" {print $3 " " $4}')
+
+8. #LVM use: $lvmu
+    • $lvmu: si el sistema usa LVM (yes/no).
+    • Cálculo: buscando "lvm" en lsblk -o TYPE.
+
+9. #Connections TCP : ctcp ESTABLISHED
+    • ctcp: número de conexiones TCP establecidas.
+    • Cálculo: ctcp=$(ss -H state established | wc -l)
+
+10. #User log: $ulog
+    • $ulog: número de usuarios conectados.
+    • Cálculo: ulog=$(users | wc -w)
+
+11. #Network: IP $ip ($mac)
+    • $ip: dirección IP del host.
+    • $mac: dirección MAC.
+    • Cálculo: usando hostname -I y ip link show ...
+
+12. #sudo : $cmnd cmd
+    • $cmnd: número de comandos ejecutados con sudo.
+    • Cálculo: usando journalctl _COMM=sudo | grep COMMAND | wc -l
+
+Resumen de cómo se arma el mensaje
+    • Todas las variables ($var) son calculadas previamente.
+    • El mensaje para wall se arma como un bloque de texto, usando las variables para mostrar los valores actuales.
+    • El comando wall envía este texto a todos los usuarios conectados, sin encabezado por usar -n.
+    • Las líneas que empiezan con # son solo para formato visual, no son comentarios aquí.
+
+Ejemplo de expansión de variables
+Supón que:
+bash
+ram_use=2048
+ram_total=8192
+ram_percent=25.0
+La línea:
+Code
+#Memory Usage: $ram_use/$ram_total MB ($ram_percent%)
+Se mostrará como:
+Code
+#Memory Usage: 2048/8192 MB (25.0%)
+
+

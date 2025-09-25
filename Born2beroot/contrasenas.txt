@@ -1,0 +1,15 @@
+LISTADO DE CONTRASENAS
+
+contrasena encriptacion-------- barcelona42encryption
+
+usuario-------------------------jceraval
+
+contrasena ususario-------------Born2beroot
+
+contrasena Root-----------------Born2bewild
+
+usuario local host--------------jceraval
+
+contrasena local host-----------Barcelona42
+
+acceso a 
